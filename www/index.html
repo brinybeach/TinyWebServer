@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
+
+    <title>Tiny Web Server</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <link href="/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="jumbotron.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="/assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="/assets/js/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <contentInputStream>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">TinyWebServer</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Hello, world!</h1>
+        <p>
+          This is my Tiny Web Server project. This HTML content is served by a small
+          Web server written from the ground up in Java for the Adobe Web Tech test.
+        </p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>Tiny</h2>
+          <p>
+            The Web server was created with only a handful of Java classes. The only external libraries
+            are there to support logging since I like Log4j a lot more than I like the default Java logging
+            framework. A Maven POM file is used to manage library dependencies.
+          </p>
+        </div>
+        <div class="col-md-4">
+          <h2>Web</h2>
+          <p>
+            The Web server conforms loosely to the RFC-7230 specification and supports HTTP/1.1 keep-alive
+            headers and some mime types. Requests are parsed using a hand-built recursive descent parser.
+            The Web server is extensible and may be enahanced to support POST, PUT, and
+            DELETE request methods. It currently only supports the GET method to meet the requirements of
+            the Web Tech test.
+          </p>
+       </div>
+        <div class="col-md-4">
+          <h2>Server</h2>
+          <p>
+            The Web server is multi-threaded and uses the Java ExecutorService to manage the thread
+            pool. You may experiment with different pool sizes and other settings by modifying the
+            server.properties file. The current pool size is <span id="poolsize">2 BAZILLION</span>
+            threads. The current connection timeout is <span id="timeout">5 GAZILLION</span>
+            milliseconds. The current server time is <span id="servertime">TUMMY TIME</span>.
+          </p>
+        </div>
+      </div>
+
+      <hr>
+
+      <footer>
+        <p>&copy; 2016 Bryant Bunderson</p>
+      </footer>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="/dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="/assets/js/ie10-viewport-bug-workaround.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $(function(){
+                $.getJSON('/rest/stats', function(stats) {
+                    $("#poolsize").text(stats.poolsize);
+                    $("#timeout").text(stats.timeout);
+                    $("#servertime").text(stats.servertime);
+                });
+            });
+
+            setInterval(function() {
+                $.getJSON('/rest/stats', function(stats) {
+                    $("#servertime").text(stats.servertime);
+                });
+            }, 1000);
+        });
+    </script>
+  </contentInputStream>
+</html>
