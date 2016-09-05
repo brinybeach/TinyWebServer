@@ -11,9 +11,10 @@ import java.util.Locale;
 import java.util.Properties;
 
 /**
- * User: bryantbunderson
- * Date: 9/1/16
- * Time: 3:48 AM
+ * The one dynamic Web content generator in the TinyWebServer. It
+ * handles request to the context /rest/stats and returns a JSON document.
+ *
+ * author: bryantbunderson
  */
 @HttpController
 public class StatsController {
@@ -24,6 +25,9 @@ public class StatsController {
     private int poolsize;
     private int timeout;
 
+    /**
+     * Load the server properties from the file rather than query the HttpServerRunner.
+     */
     public StatsController() {
         Properties serverProperties = new Properties();
         try {
@@ -36,6 +40,13 @@ public class StatsController {
         timeout = Integer.parseInt(serverProperties.getProperty("timeout", "5000"));
     }
 
+    /**
+     * Handle all GET requests made to the /rest/stats context and return HttpResponse
+     * with a ByteArrayInputStream containing the JSON object with the server stats.
+     *
+     * @param request the HttpRequest to handle
+     * @return the populated HttpResponse object
+     */
     @HttpRequestHandler(method = "GET", uri = "/rest/stats")
     public HttpResponse handleStatsRequest(HttpRequest request) {
         String servertime = dateFormat.format(Calendar.getInstance().getTime());

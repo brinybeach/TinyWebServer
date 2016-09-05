@@ -10,12 +10,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * User: bryantbunderson
- * Date: 8/31/16
+ * A recursive descent parser that parses characters from
+ * an InputStream according to the HTTP specification.
  *
- * A simple resursive descent parser that
- * follows RFC-2616 to parse HTTP requests.
+ * A recursive descent parser was chosen over other approaches
+ * such as using REGEX because the HTTP RFC 2616 was full of
+ * BNF samples that could be implemented almost directly using
+ * a RD parser.
  *
+ * See RFC-2616. https://tools.ietf.org/html/rfc2616
+ *
+ * author: bryantbunderson
  */
 public class HttpRequestParser {
     private static final Logger logger = LogManager.getLogger(HttpRequestParser.class);
@@ -41,8 +46,9 @@ public class HttpRequestParser {
      *                  CRLF
      *                  [ message-body ]          ; Section 4.3
      *
-     * @param inputStream
-     * @return
+     * @param inputStream the InputStream to parse
+     * @return a valid or invalid HttpRequest object
+     * @throws IOException if an error occurred reading from the InputStream
      */
     public HttpRequest parse(InputStream inputStream) throws IOException {
         this.inputStream = new BufferedInputStream(inputStream);
@@ -681,6 +687,9 @@ public class HttpRequestParser {
         return buffer.charAt(offset);
     }
 
+    /**
+     * Thrown internally when the parse fails.
+     */
     class ParseException extends Exception {
         private int offset;
 

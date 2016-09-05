@@ -12,9 +12,12 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
 /**
- * User: bryantbunderson
- * Date: 9/2/16
- * Time: 10:07 AM
+ * Handle Web requests on a single socket InputStream
+ * and write the response to the socket OutputStream.
+ *
+ * Properly handle Keep-Alive connections.
+ *
+ * author: bryantbunderson
  */
 public class HttpConnectionRunner implements Runnable {
     private static final Logger logger = LogManager.getLogger(HttpConnectionRunner.class);
@@ -28,6 +31,9 @@ public class HttpConnectionRunner implements Runnable {
         this.clientSocket = clientSocket;
     }
 
+    /**
+     * The run method will exit when the socket OutputStream is closed.
+     */
     @Override
     public void run() {
         SocketAddress clientAddress = clientSocket.getRemoteSocketAddress();
@@ -56,7 +62,7 @@ public class HttpConnectionRunner implements Runnable {
                 String version = request.getVersion();
 
                 if (query == null) query="";
-                logger.debug(String.format("REQUEST: %s %s%s %s", method, uri, query, version));
+                logger.info(String.format("%s %s%s %s", method, uri, query, version));
 
                 // Look for a dynamic handler for the content
                 HttpRequestHandlerFactory handlerFactory = HttpRequestHandlerFactory.getInstance();
@@ -84,16 +90,19 @@ public class HttpConnectionRunner implements Runnable {
 
                 HttpResponseRules.apply(response, request);
                 response.write(outputStream);
+
+                if ("close".equals(response.getHeader("Connection"))) {
+                    outputStream.close();
+                }
             }
         } catch (SocketTimeoutException e) {
-            // logger.error(e);
+            logger.debug(e);
         } catch (SocketException e) {
-            logger.error(e);
+            logger.debug(e);
         } catch (IOException e) {
-            // logger.error(e);
+            logger.debug(e);
         } finally {
-            if (inputStream != null) try { inputStream.close(); } catch (Exception ignore) {}
-            if (outputStream != null) try { outputStream.close(); } catch (Exception ignore) {}
+            try { clientSocket.close(); } catch (Exception ignore) {};
         }
 
         logger.debug(String.format("Client disconnected %s", clientAddress.toString()));

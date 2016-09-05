@@ -6,9 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * User: bryantbunderson
- * Date: 8/30/16
- * Time: 3:33 PM
+ * This annotation is used to mark the method used to
+ * generation dynamic content. The method MUST take one
+ * HttpRequest object and return a HttpResponse object.
+ *
+ * author: bryantbunderson
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target( ElementType.METHOD )

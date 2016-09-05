@@ -10,9 +10,11 @@ import java.net.URL;
 import java.util.*;
 
 /**
- * User: bryantbunderson
- * Date: 9/1/16
- * Time: 2:22 AM
+ * This is used to scan classes in a package and build a
+ * Map of clases instances and methods that may be called
+ * to handle different Web contexts and return dynamic content.
+ *
+ * author: bryantbunderson
  */
 public class HttpRequestHandlerFactory {
     private static final Logger logger = LogManager.getLogger(HttpRequestHandlerFactory.class);
@@ -20,6 +22,9 @@ public class HttpRequestHandlerFactory {
     private static HttpRequestHandlerFactory instance;
     private Map<HttpRequestHandler, HttpHandlerInstance> handlerInstances = new HashMap<HttpRequestHandler, HttpHandlerInstance>();
 
+    /**
+     * @return return the one instance of the factory
+     */
     public static HttpRequestHandlerFactory getInstance() {
         if (instance == null) {
             instance = new HttpRequestHandlerFactory();
@@ -27,7 +32,10 @@ public class HttpRequestHandlerFactory {
         return instance;
     }
 
-    public HttpRequestHandlerFactory() {
+    /**
+     * Scan all classes and build a map of annotated methods.
+     */
+    private HttpRequestHandlerFactory() {
         String packageName = Application.class.getPackage().getName();
 
         try {
@@ -59,6 +67,10 @@ public class HttpRequestHandlerFactory {
         }
     }
 
+    /**
+     * @param request the HttpRequest object to use to find the handler
+     * @return Return the HttpHandlerInstance that matches the method and uri of the request
+     */
     public HttpHandlerInstance findHandlerMethod(HttpRequest request) {
 
         String requestMethod = request.getMethod();

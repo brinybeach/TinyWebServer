@@ -10,6 +10,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * User: bryantbunderson
@@ -27,55 +30,7 @@ public class HttpServerTest extends TestCase {
             "Accept: */*\r\n" +
             "\r\n";
 
-        logger.debug("testStaticGet()");
-
-        HttpServerRunner serverRunner = new HttpServerRunner();
-
-        Thread serverThread = new Thread(new HttpServerRunner());
-        serverThread.start();
-
-        String response = "";
-
-        try {
-            // Wait for the server to start
-            for (int i = 0; i < 20; i++) {
-                if (!serverRunner.isRunning()) {
-                    synchronized (this) {
-                        wait(100);
-                    }
-                }
-            }
-
-            Socket clientSocket = new Socket("localhost", serverRunner.getPort());
-
-            OutputStream outputStream = clientSocket.getOutputStream();
-            outputStream.write(requestData.getBytes());
-            outputStream.flush();
-
-            InputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
-
-            byte buffer[] = new byte[4096];
-            int bytesRead = inputStream.read(buffer);
-
-            response = new String(buffer, 0, bytesRead);
-
-            inputStream.close();
-            outputStream.close();
-
-            clientSocket.close();
-
-            serverRunner.kill();
-
-        } catch (InterruptedException e) {
-            logger.error(e);
-        } catch (UnknownHostException e) {
-            logger.error(e);
-        } catch (IOException e) {
-            logger.error(e);
-        } finally {
-            serverRunner.kill();
-            serverThread.interrupt();
-        }
+        String response = runServer(requestData);
 
         assertTrue(response.contains("<title>Tiny Web Server</title>"));
     }
@@ -88,12 +43,18 @@ public class HttpServerTest extends TestCase {
             "Accept: */*\r\n" +
             "\r\n";
 
-        logger.debug("testStaticGet()");
+        String response = runServer(requestData);
 
+        assertTrue(response.contains("poolsize"));
+        assertTrue(response.contains("timeout"));
+        assertTrue(response.contains("servertime"));
+    }
+
+    private String runServer(String request) {
         HttpServerRunner serverRunner = new HttpServerRunner();
 
-        Thread serverThread = new Thread(new HttpServerRunner());
-        serverThread.start();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(serverRunner);
 
         String response = "";
 
@@ -110,7 +71,7 @@ public class HttpServerTest extends TestCase {
             Socket clientSocket = new Socket("localhost", serverRunner.getPort());
 
             OutputStream outputStream = clientSocket.getOutputStream();
-            outputStream.write(requestData.getBytes());
+            outputStream.write(request.getBytes());
             outputStream.flush();
 
             InputStream inputStream = new BufferedInputStream(clientSocket.getInputStream());
@@ -124,8 +85,19 @@ public class HttpServerTest extends TestCase {
             outputStream.close();
 
             clientSocket.close();
-
             serverRunner.kill();
+
+            // Wait for the server to stop
+            for (int i = 0; i < 50; i++) {
+                if (serverRunner.isRunning()) {
+                    synchronized (this) {
+                        wait(100);
+                    }
+                }
+            }
+
+            executorService.shutdown();
+            executorService.awaitTermination(5000, TimeUnit.MILLISECONDS);
 
         } catch (InterruptedException e) {
             logger.error(e);
@@ -134,12 +106,9 @@ public class HttpServerTest extends TestCase {
         } catch (IOException e) {
             logger.error(e);
         } finally {
-            serverRunner.kill();
-            serverThread.interrupt();
+            executorService.shutdownNow();
         }
 
-        assertTrue(response.contains("poolsize"));
-        assertTrue(response.contains("timeout"));
-        assertTrue(response.contains("servertime"));
+        return response;
     }
 }

@@ -44,51 +44,208 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
       <div class="container">
-        <h1>Hello, world!</h1>
+        <h1>Introduction</h1>
         <p>
-          This is my Tiny Web Server project. This HTML content is served by a small
-          Web server written from the ground up in Java for the Adobe Web Tech test.
+          I created the TinyWebServer as part of taking the Adobe Web Tech test. This document explains
+          my understanding of the test requirments. It also describes the design of my solution to the
+          test. My own goal for this project was to not only meet the requirements of the Web Tech test but to
+          also experiment with handling dynamic content in a home spun Web server. With that goal in mind,
+          I created stories describing the things that I needed to know and do.
+        </p>
+        <p>
+          The Web server conforms closely to the RFC-2616 specification although some headers are not
+          supported. It also doesn't support multipart transactions.
+        </p>
+        <p>
+          If the TinyWebServer is serving this page then you will see that the server is running
+          <strong><span id="poolsize"></span></strong> threads. The thread connections will time
+          out after <strong><span id="timeout"></span></strong> milliseconds. The the server time
+          is currently <strong><span id="servertime"></span></strong>.
         </p>
       </div>
     </div>
 
     <div class="container">
-      <!-- Example row of columns -->
-      <div class="row">
-        <div class="col-md-4">
-          <h2>Tiny</h2>
-          <p>
-            The Web server was created with only a handful of Java classes. The only external libraries
-            are there to support logging since I like Log4j a lot more than I like the default Java logging
-            framework. A Maven POM file is used to manage library dependencies.
-          </p>
-        </div>
-        <div class="col-md-4">
-          <h2>Web</h2>
-          <p>
-            The Web server conforms loosely to the RFC-7230 specification and supports HTTP/1.1 keep-alive
-            headers and some mime types. Requests are parsed using a hand-built recursive descent parser.
-            The Web server is extensible and may be enahanced to support POST, PUT, and
-            DELETE request methods. It currently only supports the GET method to meet the requirements of
-            the Web Tech test.
-          </p>
-       </div>
-        <div class="col-md-4">
-          <h2>Server</h2>
-          <p>
-            The Web server is multi-threaded and uses the Java ExecutorService to manage the thread
-            pool. You may experiment with different pool sizes and other settings by modifying the
-            server.properties file. The current pool size is <span id="poolsize">2 BAZILLION</span>
-            threads. The current connection timeout is <span id="timeout">5 GAZILLION</span>
-            milliseconds. The current server time is <span id="servertime">TUMMY TIME</span>.
-          </p>
-        </div>
-      </div>
+      <p>
+        <h3>Requirements</h3>
 
-      <hr>
+        <ul>
+          <li>For the Adobe Web Tech test create a multi-threaded (e.g. file-based)
+            web server with thread-pooling implemented in Java. Extension: Add
+            proper HTTP/1.1 keep-alive behavior to your implementation based on
+            the http-client's capabilities exposed through its request headers.
+          </li>
+          <li>As a personal experiment, and because its just cool, support dynamic content
+            in a flexible modular way.
+          </li>
+        </ul>
+      </p>
+
+      <hr/>
+
+      <p>
+        <h3>Non-functional requirements</h3>
+
+        <ul>
+          <li>Make the code easy to understand.</li>
+          <li>Write tests to validate the implementation.</li>
+          <li>Describe architecture and design decisions.</li>
+        </ul>
+      </p>
+
+      <hr/>
+
+      <p>
+        <h3>Stories</h3>
+        <p></p>
+        <h4>Parse a HTTP request into its parts</h4>
+        <ul>
+          <li>Read the HTTP RFC to understand the protocol</li>
+          <li>Write a simple socket server to capture HTTP requests from at least 3 Web clients</li>
+          <li>Write unit tests to validate parsing a request into a HttpRequest object</li>
+          <li>Write the request parser</li>
+          <li>Write unit tests to check malformed requests</li>
+        </ul>
+
+      <h4>Create a HttpResponse object appropriate for the HttpRequest</h4>
+        <ul>
+          <li>Read the HTTP RFC for the response</li>
+          <li>Write unit tests to validate the HttpRequest codes, headers, and content</li>
+          <li>Write the HttpRequest class to contain the codes and headers and content</li>
+          <li>Write the HttpFileManager class to help get content attributes and mime types</li>
+          <li>Write unit tests for the HttpFileManager</li>
+        </ul>
+
+      <h4>Create a HttpResponseRules class to modify the HttpResponse using RFC rules</h4>
+        <ul>
+          <li>Write unit tests to validate the rules behavior</li>
+        </ul>
+
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Supported Headers</h4>
+            <ul>
+              <li>Connection ; Section 14.10</li>
+              <li>Date ; Section 14.18</li>
+              <li>Host ; Section 14.23</li>
+              <li>If-Match ; Section 14.24</li>
+              <li>If-None-Match ; Section 14.26</li>
+              <li>User-Agent ; Section 14.43</li>
+              <li>ETag ; Section 14.19</li>
+              <li>Server ; Section 14.38</li>
+              <li>Content-Length ; Section 14.13</li>
+              <li>Content-Type ; Section 14.17</li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h4>Unsupported Headers</h4>
+            <ul>
+              <li>Accept ; Section 14.1</li>
+              <li>Accept-Charset ; Section 14.2</li>
+              <li>Accept-Encoding ; Section 14.3</li>
+              <li>Authorization ; Section 14.8</li>
+              <li>Expect ; Section 14.20</li>
+              <li>Range ; Section 14.35</li>
+              <li>Vary ; Section 14.44</li>
+              <li>Content-Encoding ; Section 14.11</li>
+            </ul>
+          </div>
+        </div>
+
+      <h4>Create the multi-threaded server</h4>
+        <ul>
+          <li>Create the HttpServerRunner and HttpClientRunner classes</li>
+          <li>Verify the connections are accepted and wrapped in a HttpConnectionRunner</li>
+          <li>Integrate HttpRequest parsing, HttpResponse generation, and apply HttpResponseRules</li>
+          <li>Integrate writing to an OutputStream into the HttpResponse class</li>
+          <li>Write unit tests start the Web server and test the results in the OutputStream</li>
+        </ul>
+
+      <h4>Implement HTTP/1.1 keep-alive behavior</h4>
+        <ul>
+          <li>Read the HTTP RFC for keep alive behavior</li>
+          <li>Add the keep alive rules to the HttpResponseRules class</li>
+          <li>Write unit tests to validate the keep alive bahavior</li>
+          <li>Test with real Web clients</li>
+        </ul>
+
+      <h4>Add dynamic content generation</h4>
+        <ul>
+          <li>Consider different approaches and choose annotated methods and classes</li>
+          <li>Integrate annotation scanning into a package crawler</li>
+          <li>Save the discovered annotated methods in a map</li>
+          <li>Write unit tests for the dynamic content creation</li>
+          <li>Create a TestController using the HttpController and HttpRequestMethod annotations</li>
+          <li>Integrate dynamic content support into the HttpConnectionRunner</li>
+        </ul>
+
+      <h4>Create a demonstration Web page with both static and dynamic content</h4>
+        <ul>
+          <li>Decide on bootstrap to test serving HTML, CSS, and Javascript</li>
+          <li>Create a main index.html page</li>
+          <li>Add a Javascript REST call to the TinyWebServer and update the Web page</li>
+        </ul>
+
+      <h4>Document the project and publish it</h4>
+        <ul>
+          <li>Create a GitHub account and publish the code</li>
+          <li>Write this document and integrate it into the Web page</li>
+          <li>Tell Adobe</li>
+          <li>Get some sleep</li>
+        </ul>
+
+      <hr/>
+      <h3>Architecture</h3>
+
+      <p>
+        The TinyWebServer starts a single ServerRunner that listens for incoming connections on a specified
+        port. When a client connection is recieved a new ConnectionRunner is created to handle the connection.
+      </p>
+      <p>
+        The ConnectionRunner is wrapped in a thread and added to a pool of threads. The ConnectionRunner opens
+        an InputStream and OutputStream to the Web client and reads the data arriving from the InputStream and
+        calls the HttpRequestParser to parse it into a HttpRequest object a character at a time as the data is
+        read from the client connection.
+      <p>
+        The HttpRequest object wraps the parts of the HTTP RFC such as the request
+        METHOD, URI, VERSION, and HEADERS, as specified in the HTTP RFC.
+      </p>
+      <p>
+        An new appropriate HttpResponse object is created from the HttpRequest. The HttpResponse object
+        wraps the parts of the HTTP RFC such as the VERSION, STATUS CODE, REASON PHRASE, HEADERS, and BODY content.
+        The HttpFileManager is used when building the HttpResponse to get file attributes such as length, mime-type,
+        and a hash used for the Etag: header.
+      </p>
+      <p>
+        The HttpResponseRules object is used to
+        modify the HttpResponse object based on the rules from the HTTP RFC.
+      </p>
+      <p>
+        The HttpConnectionRunner then asks the HttpResponse object to write itself to the connected Web client
+        over the OutputStream. The HttpConnectionRunner will then continue to wait for requests or close the
+        OutputStream as per HTTP/1.1 specs based on the presence of the computed "Connection: close" header in the
+        HttpResponse object.
+      </p>
+      <p>
+        Dynamic content is generated by Java methods annotated with the @HttpRequestHandler in classes annotated
+        with @HttpController. The method annotated by the @HttpRequestHandler has an "uri" and "method" attribute
+        and is invoked if there is a match to message line in the HttpRequest object. The HttpRequestHandlerFactory is a
+        singleton object that scans the classes in the package for HttpRequestHandler methods and stores them in a
+        Map. The HttpConnectionRunner asks the HttpRequestHandlerFactory for a handler matching the HttpRequest and
+        then invokes the handler on the HttpRequest which returns a HttpResponse object to which rules are applied
+        before it is written to the OutputStream.
+      </p>
+
+      <p>
+        The JavaDoc for the TinyWebServer can be found at <a href="/docs/index.html">&lt;project dir&gt;/www/docs/index.html.</a>
+      </p>
+
+      <hr/>
 
       <footer>
-        <p>&copy; 2016 Bryant Bunderson</p>
+        <p>
+          &copy; 2016 <a href="mailto:bryant.bunderson@gmail.com?Subject=TinyWebServer" target="_top">Bryant Bunderson</a>
+        </p>
       </footer>
     </div> <!-- /container -->
 
@@ -112,11 +269,11 @@
                 });
             });
 
-            setInterval(function() {
-                $.getJSON('/rest/stats', function(stats) {
-                    $("#servertime").text(stats.servertime);
-                });
-            }, 1000);
+            <!--setInterval(function() {-->
+                <!--$.getJSON('/rest/stats', function(stats) {-->
+                    <!--$("#servertime").text(stats.servertime);-->
+                <!--});-->
+            <!--}, 1000);-->
         });
     </script>
   </contentInputStream>

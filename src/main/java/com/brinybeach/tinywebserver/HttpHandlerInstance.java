@@ -7,9 +7,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * User: bryantbunderson
- * Date: 9/1/16
- * Time: 3:27 AM
+ * Wrap an instance of the object and method that can be called
+ * for dynamic content creation. This is returned from the
+ * HttpRequestHandlerFactory. HttpHandlerInstance is inmutable.
+ *
+ * author: bryantbunderson
  */
 class HttpHandlerInstance {
     private static final Logger logger = LogManager.getLogger(HttpHandlerInstance.class);
@@ -17,12 +19,19 @@ class HttpHandlerInstance {
     private Object instance;
     private Method method;
 
+    /**
+     * Create a new HttpHandlerInstance from the Object
+     * and Method found by the HttpRequestHandlerFactory.
+     *
+     * @param instance
+     * @param method
+     */
     public HttpHandlerInstance(Object instance, Method method) {
         this.instance = instance;
         this.method = method;
     }
 
-    public Object getInstance() {
+    public Object getObject() {
         return instance;
     }
 
@@ -30,6 +39,12 @@ class HttpHandlerInstance {
         return method;
     }
 
+    /**
+     * Invoke the method on the instance of the object and hand it the request to handle.
+     *
+     * @param request
+     * @return an appropriate HttpResponse
+     */
     public HttpResponse invokeHandler(HttpRequest request) {
         try {
             return (HttpResponse) method.invoke(instance, request);

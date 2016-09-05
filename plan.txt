@@ -1,0 +1,198 @@
+PLAN FILE
+
+DESCRIPTION OF WORK
+
+For the Adobe Web Tech test create a multi-threaded (e.g. file-based)
+web server with thread-pooling implemented in Java. Extension: Add
+proper HTTP/1.1 keep-alive behavior to your implementation based on
+the http-client's capabilities exposed through its request headers.
+
+The extension is optional unless requested (see below).
+
+Please note that Adobe has considerable experience with publicly
+available examples as we have been using this assessment for many
+years. We realize that many implementations exist on the Internet
+and are very familiar with them.
+
+We will not hold copying existing source code against you since
+in real-life leveraging existing code may, at times, be the best
+and quickest way to get a good result. Be aware though that not
+all publicly available solutions are of good code quality and we
+will consider your choice as part of the assessment.
+
+We will also not hold it against you if you choose to write the
+entire example from scratch.
+
+If you do decide to copy code from third party resources, please
+consider the following when submitting your code:
+
+• Declare which parts of the sample is your own code
+• Reference all copied code and where you took it from: do not
+  remove copyrights or comments. Any violation of copyrights or
+  obfuscation tactics will reflect negatively on your assessment.
+• If after reviewing your example we do not feel we have enough
+  of your own code to evaluate, we may ask you to add the extension.
+
+Please provide us with a link from where we can download your
+solutions (you may for example use https://sendnow.acrobat.com/).
+
+
+ADDITIONAL
+
+Add dynamic content. Use Annotations. How hard could it be? :)
+
+
+TO DO
+
+Improve the Map that hold the dynamic content handlers
+Support inner classes in the HttpRequestHandlerFactory
+Add an actual file cache to the HttpFileManager
+
+COMPLETED
+
+x Study the HTTP RFC-2616.
+    http://www.w3.org/Protocols/rfc2616/rfc2616.txt
+
+x Choose which headers to support and how to respond to them.
+
+    *** General Headers (ignore those not listed below)
+
+    Cache-Control ; Section 14.9
+    don't support caching so return a "no-cache"
+
+    Connection ; Section 14.10
+    must support this and handle and send a "close"
+
+    Date ; Section 14.18
+    must support this and send a HTTP date in response
+
+    *** Request Headers (only support those listed below)
+
+    Accept ; Section 14.1
+    Check this and send response 406 (not acceptable) if needed
+
+    Accept-Charset ; Section 14.2
+    Check this and send response 406 (not acceptable) if needed
+
+    Accept-Encoding ; Section 14.3
+    Do not compress anything so ignore this header
+
+    Authorization ; Section 14.8
+    Do not support authentication
+
+    Expect ; Section 14.20
+    Always respond with a 417 (Expectation Failed)
+
+    Host ; Section 14.23
+    Must respond with a 400 (Bad Request) to any HTTP/1.1
+    request message which lacks a Host header field.
+
+    If-Match ; Section 14.24
+    Must return a 412 (Precondition Failed) response if
+    this ETag check fails. This means that responses must
+    include ETags like Etag: "686897696a7c876b7e1".
+
+    If-None-Match ; Section 14.26
+    Support this. GET or HEAD, the server SHOULD respond
+    with a 304 (Not Modified). For all other request methods,
+    the server MUST respond with 412 (Precondition Failed).
+
+    Range ; Section 14.35
+    Don't support this and return a response with a status
+    of 416 (Requested range not satisfiable).
+
+    User-Agent ; Section 14.43
+    Keep track of this but don't do anything about it.
+
+    *** Response Headers (only support those listed below)
+
+    ETag ; Section 14.19
+    Attach this to outgoing responses
+
+    Server ; Section 14.38
+    Sure why not? Server: TinyWebServer/1.0
+
+    Vary ; Section 14.44
+    Don't send this. Just let the normal ETag behaviour
+    decide if a cached item is available.
+
+    *** Entity Headers (only support those listed below)
+
+    Content-Encoding ; Section 14.11
+    Don't support zip or other encodings. If the content-coding
+    of an entity in a request message is not acceptable then respond
+    with a 415 (Unsupported Media Type).
+
+    Content-Length ; Section 14.13
+    The Content-Length entity-header field indicates the size of the
+    entity-body, in decimal number of OCTETs, sent to the recipient or,
+    in the case of the HEAD method, the size of the entity-body that
+    would have been sent had the request been a GET.
+
+    Content-Type ; Section 14.17
+    The Content-Type entity-header field indicates the media type of the
+    entity-body sent to the recipient or, in the case of the HEAD method,
+    the media type that would have been sent had the request been a GET.
+
+
+x Write a test to accept a connection from a Web browser and record the requests.
+
+    curl -v -X GET http://localhost:8080/index.html
+
+    GET /index.html HTTP/1.1
+    Host: localhost:8080
+    User-Agent: curl/7.43.0
+    Accept: */*
+
+
+    Safari http://localhost:8080/index.html
+
+    GET / HTTP/1.1
+    Host: localhost:8080
+    Accept-Encoding: gzip, deflate
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7
+    Accept-Language: en-us
+    DNT: 1
+    Connection: keep-alive
+
+
+    Chrome http://localhost:8080/index.html
+
+    GET /index.html HTTP/1.1
+    Host: localhost:8080
+    Connection: keep-alive
+    Cache-Control: max-age=0
+    Upgrade-Insecure-Requests: 1
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36
+    Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+    Accept-Encoding: gzip, deflate, sdch
+    Accept-Language: en-US,en;q=0.8
+
+
+    curl -i -v -X GET http://localhost:8080/rest/stats
+
+    GET /index.html HTTP/1.1
+    Host: localhost:8080
+    User-Agent: curl/7.43.0
+    Accept: */*
+
+
+x Write unit tests to exercise the request parser based on collected requests.
+x Using the recorded example and RFC, parse a request into its parts.
+x Write unit tests to test malformed requests.
+x Write unit tests to test request handler
+x Handle the request using and annotated method based on HTTP method and uri.
+x Build unit tests for the file manager.
+x Build a file manager that locates and loads resources and computes an ETag hash.
+x Write unit tests for the response rules helper.
+x Create a response helper to update the response based on request and RFC-2616 rules.
+x Write unit test for response writer
+x Write the response to a stream
+x Submit the response back to the Web browser.
+x Keep the connection open as per HTTP/1.1 Keep-alive.
+x Add support for dynamic content using the annotated request handler.
+x Write the system tests.
+x Document everything, design, architecture, shortcuts, lifts.
+
+

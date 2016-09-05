@@ -12,12 +12,13 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * User: bryantbunderson
- * Date: 9/1/16
- * Time: 12:45 PM
+ * Return attributes of file in the file system
+ * and map file extensions to mime types.
+ *
+ * author: bryantbunderson
  */
 public class HttpFileManager {
-    private static final Logger logger = LogManager.getLogger(Application.class);
+    private static final Logger logger = LogManager.getLogger(HttpFileManager.class);
 
     private static HttpFileManager instance;
     private String rootDir;
@@ -34,9 +35,10 @@ public class HttpFileManager {
         Properties serverProperties = new Properties();
 
         try { serverProperties.load(new FileInputStream("server.properties")); }
-        catch (Exception e) { logger.info("Using default directory."); }
+        catch (Exception ignore) {}
 
         rootDir = serverProperties.getProperty("directory", "www");
+        logger.debug("rootDir is "+rootDir);
     }
 
     public boolean exists(String uri) {
@@ -70,9 +72,9 @@ public class HttpFileManager {
         return new FileInputStream(file);
     }
 
-    //
-    // Some common file extensions mapped to content types
-    //
+    /**
+     * Some common file extensions mapped to content types
+     */
     private static final Map<String, String> contentTypeMap = new HashMap<String, String>();
     {
         contentTypeMap.put(".asx", "application/x-mplayer2");

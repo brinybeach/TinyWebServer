@@ -10,12 +10,22 @@ import java.net.Socket;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * User: bryantbunderson
- * Date: 9/2/16
- * Time: 10:08 AM
+ * Accepts connections on the specified port and creates
+ * a new HttpConnectionRunner to handle each connection recieved.
+ *
+ * Uses settings from the server.properties file.
+ *
+ * Default settings are:
+ *
+ * port=8080
+ * poolsize=20
+ * timeout=5000
+ *
+ * author: bryantbunderson
  */
 public class HttpServerRunner implements Runnable {
     private static final Logger logger = LogManager.getLogger(HttpServerRunner.class);
@@ -28,7 +38,7 @@ public class HttpServerRunner implements Runnable {
         try {
             serverProperties.load(new FileInputStream("server.properties"));
         } catch (Exception e) {
-            logger.info("Missing server.properties file.");
+            logger.warn("Missing server.properties file.");
         }
 
         port = Integer.parseInt(serverProperties.getProperty("port", "8080"));
@@ -39,37 +49,55 @@ public class HttpServerRunner implements Runnable {
     private boolean isRunning = false;
     private boolean killRequested = false;
 
-
+    /**
+     * A new HttpServerRunner
+     */
     public HttpServerRunner() {
     }
 
+    /**
+     * @return the server port
+     */
     public int getPort() {
         return port;
     }
 
+    /**
+     * @return true if the server is running and accepting connections
+     */
     public boolean isRunning() {
         return isRunning;
     }
 
+    /**
+     * Request that the server stop
+     */
     public void kill() {
         killRequested =  true;
     }
 
+    /**
+     * This method accepts connection from Web clients until
+     * the kill() method is called or it is interrupted.
+     */
     @Override
     public void run() {
         logger.info(String.format("Starting server on port %d", port));
         logger.info(String.format("Connection pool size is %d", poolsize));
+        logger.info(String.format("Connection timeout is %d", timeout));
 
-        ExecutorService executor = Executors.newFixedThreadPool(poolsize);
+        ExecutorService executorService = Executors.newFixedThreadPool(poolsize);
+        ServerSocket serverSocket = null;
+
+        isRunning = true;
 
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
+            serverSocket = new ServerSocket(port);
 
-            isRunning = true;
             killRequested = false;
-
             while (!killRequested) {
                 // Wait for client connections on the port.
+                logger.debug("Waiting for client connection...");
                 Socket clientSocket = serverSocket.accept();
 
                 // Timeout client connections so that badly behaved Web clients
@@ -83,17 +111,17 @@ public class HttpServerRunner implements Runnable {
                 // that the thread pool isn't overwhelmed by dead connections that the
                 // client doesn't close.
                 HttpConnectionRunner connectionRunner = new HttpConnectionRunner(clientSocket);
-                executor.execute(connectionRunner);
+                executorService.execute(connectionRunner);
             }
-
-            serverSocket.close();
 
         } catch (Exception e) {
             logger.error(e);
         } finally {
-            executor.shutdownNow();
-            isRunning = false;
+            try { if (serverSocket != null) serverSocket.close(); } catch (Exception ignore) {}
+            executorService.shutdownNow();
         }
+
+        isRunning = false;
 
         logger.info(String.format("Server shutdown", port));
     }

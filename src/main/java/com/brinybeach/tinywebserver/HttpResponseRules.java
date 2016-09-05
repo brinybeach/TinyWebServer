@@ -6,12 +6,24 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * User: bryantbunderson
- * Date: 9/2/16
- * Time: 12:38 AM
+ * Implements the rules found in the HTTP RFC specification.
+ *
+ * author: bryantbunderson
  */
 public class HttpResponseRules {
 
+    /**
+     * Application of the HTTP rules will populate the HttpResponse status
+     * code and headers depending on the attributes of the HttpRequest object.
+     *
+     * For example, the Date: header is generated here and added to the HttpResponse.
+     *
+     * This is where the HttpResponse Connection: Keep-alive header is added
+     * to support the HTTP/1.1 requirements.
+     *
+     * @param response the HttpResponse to be modified
+     * @param request the HttpRequest used by the rules
+     */
     public static void apply(HttpResponse response, HttpRequest request) {
         String value;
 

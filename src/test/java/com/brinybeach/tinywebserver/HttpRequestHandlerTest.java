@@ -29,7 +29,7 @@ public class HttpRequestHandlerTest extends TestCase {
 
         HttpHandlerInstance handlerInstance = handlerFactory.findHandlerMethod(request);
         assertNotNull(handlerInstance);
-        assertTrue(handlerInstance.getInstance() instanceof TestController);
+        assertTrue(handlerInstance.getObject() instanceof TestController);
 
         HttpResponse response = handlerInstance.invokeHandler(request);
         assertNull(response);
