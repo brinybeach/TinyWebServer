@@ -42,7 +42,7 @@ The JavaDoc for the TinyWebServer can be found at <a href="/docs/index.html">&lt
 ### How do I get set up? ###
 
 * Clone this repo
-* cd <projectdir>
+* cd "project dir"
 * mvn clean
 * mvn compile
 * mvn test (optional)
