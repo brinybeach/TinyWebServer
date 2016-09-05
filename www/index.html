@@ -198,11 +198,11 @@
       <h3>Architecture</h3>
 
       <p>
-        The TinyWebServer starts a single ServerRunner that listens for incoming connections on a specified
-        port. When a client connection is recieved a new ConnectionRunner is created to handle the connection.
+        The TinyWebServer starts a single HttpServerRunner that listens for incoming connections on a specified
+        port. When a client connection is recieved a new HttpConnectionRunner is created to handle the connection.
       </p>
       <p>
-        The ConnectionRunner is wrapped in a thread and added to a pool of threads. The ConnectionRunner opens
+        The HttpConnectionRunner is wrapped in a thread and added to a pool of threads. The HttpConnectionRunner opens
         an InputStream and OutputStream to the Web client and reads the data arriving from the InputStream and
         calls the HttpRequestParser to parse it into a HttpRequest object a character at a time as the data is
         read from the client connection.

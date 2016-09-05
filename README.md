@@ -6,10 +6,10 @@ demonstrate serving pages and a simple REST service.
 
 # Architecture #
 
-The TinyWebServer starts a single ServerRunner that listens for incoming connections on a specified
-port. When a client connection is recieved a new ConnectionRunner is created to handle the connection.
+The TinyWebServer starts a single HttpServerRunner that listens for incoming connections on a specified
+port. When a client connection is recieved a new HttpConnectionRunner is created to handle the connection.
 
-The ConnectionRunner is wrapped in a thread and added to a pool of threads. The ConnectionRunner opens
+The HttpConnectionRunner is wrapped in a thread and added to a pool of threads. The HttpConnectionRunner opens
 an InputStream and OutputStream to the Web client and reads the data arriving from the InputStream and
 calls the HttpRequestParser to parse it into a HttpRequest object a character at a time as the data is
 read from the client connection.
@@ -22,8 +22,7 @@ wraps the parts of the HTTP RFC such as the VERSION, STATUS CODE, REASON PHRASE,
 The HttpFileManager is used when building the HttpResponse to get file attributes such as length, mime-type,
 and a hash used for the Etag: header.
 
-The HttpResponseRules object is used to
-modify the HttpResponse object based on the rules from the HTTP RFC.
+The HttpResponseRules object is used to modify the HttpResponse object based on the rules from the HTTP RFC.
 
 The HttpConnectionRunner then asks the HttpResponse object to write itself to the connected Web client
 over the OutputStream. The HttpConnectionRunner will then continue to wait for requests or close the
