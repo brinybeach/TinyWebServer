@@ -37,12 +37,12 @@ Map. The HttpConnectionRunner asks the HttpRequestHandlerFactory for a handler m
 then invokes the handler on the HttpRequest which returns a HttpResponse object to which rules are applied
 before it is written to the OutputStream.
 
-The JavaDoc for the TinyWebServer can be found at <a href="/docs/index.html">&lt;project dir&gt;/www/docs/index.html.</a>
+The JavaDoc for the TinyWebServer can be found at <project dir>/docs/index.html.
 
 ### How do I get set up? ###
 
 * Clone this repo
-* cd "project dir"
+* cd <project dir>
 * mvn clean
 * mvn compile
 * mvn test (optional)
