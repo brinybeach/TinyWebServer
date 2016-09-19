@@ -1,8 +1,8 @@
 package com.brinybeach.tinywebserver;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Wrap the HTTP response attributes.
@@ -46,7 +46,12 @@ public class HttpResponse {
     public HttpResponse(int code, String contentUri) throws FileNotFoundException {
         setVersion(defaultVersion);
         setCode(code);
-        setContentWithUri(contentUri);
+
+        if (HttpFileManager.getInstance().isDirectory(contentUri)) {
+            setContentWithDirectory(contentUri);
+        } else {
+            setContentWithUri(contentUri);
+        }
     }
 
     /**
@@ -212,6 +217,61 @@ public class HttpResponse {
     }
 
     /**
+     * Set the content based on a local directory listing.
+     * @param uri the directory name
+     * @throws FileNotFoundException if an error
+     */
+    public void setContentWithDirectory(String uri) throws FileNotFoundException {
+        // Remove trailing slash
+        if (uri.endsWith("/")) {
+            uri = uri.substring(0, uri.length()-1);
+        }
+
+        HttpFileManager fileManager = HttpFileManager.getInstance();
+        String path = fileManager.getAbsolutePath(uri);
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.append("<!DOCTYPE html>\n");
+        stringBuilder.append("<html lang=\"en\">\n");
+        stringBuilder.append("<head>\n");
+        stringBuilder.append("    <title>"+uri+"</title>\n");
+        stringBuilder.append("</head>\n");
+        stringBuilder.append("<body>\n");
+        stringBuilder.append("  <h3>"+uri+"</h3>\n");
+        stringBuilder.append("<p>");
+
+        File directory = new File(path);
+        for(File file : directory.listFiles()){
+            if(file.isDirectory()) {
+                stringBuilder.append("<strong>");
+            }
+
+            String fullName = uri+"/"+file.getName();
+
+            stringBuilder.append("<a href=\""+fullName+"\">");
+            stringBuilder.append(file.getName());
+            stringBuilder.append("</a>");
+
+            if(file.isDirectory()) {
+                stringBuilder.append("</strong>");
+            }
+
+            stringBuilder.append("<br />");
+        }
+
+        stringBuilder.append("</p>");
+        stringBuilder.append("</body>\n");
+        stringBuilder.append("</html>");
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(stringBuilder.toString().getBytes());
+
+        setContentInputStream(inputStream);
+        setContentLength(stringBuilder.length());
+        setContentType(fileManager.getContentType(".html"));
+    }
+
+    /**
      * Clear all attributes in this HttpResponse object
      */
     public void clear() {
@@ -320,4 +380,5 @@ public class HttpResponse {
         reasonMap.put(504, "Gateway Timeout");
         reasonMap.put(505, "HTTP Version Not Supported");
     }
+
 }

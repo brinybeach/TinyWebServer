@@ -1,5 +1,7 @@
 package com.brinybeach.tinywebserver;
 
+import com.brinybeach.tinywebserver.handler.HttpHandlerInstance;
+import com.brinybeach.tinywebserver.handler.HttpRequestHandlerFactory;
 import junit.framework.TestCase;
 
 import java.io.ByteArrayInputStream;
@@ -12,7 +14,7 @@ import java.io.IOException;
  */
 public class HttpRequestHandlerTest extends TestCase {
 
-    public void testSimpleGetHandler() throws IOException {
+    public void testSimpleGetHandler() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -26,6 +28,7 @@ public class HttpRequestHandlerTest extends TestCase {
         HttpRequest request = parser.parse(inputStream);
 
         HttpRequestHandlerFactory handlerFactory = HttpRequestHandlerFactory.getInstance();
+        handlerFactory.scanPackage(this.getClass().getPackage().getName());
 
         HttpHandlerInstance handlerInstance = handlerFactory.findHandlerMethod(request);
         assertNotNull(handlerInstance);

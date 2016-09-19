@@ -15,7 +15,7 @@ public class HttpResponseTest extends TestCase {
 
     private static final HttpFileManager fileManager = HttpFileManager.getInstance();
 
-    public void testSimpleGetResponse() throws IOException {
+    public void testSimpleGetResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -37,7 +37,7 @@ public class HttpResponseTest extends TestCase {
         assertEquals("text/html", response.getContentType());
     }
 
-    public void testCorrectedGetResponse() throws IOException {
+    public void testCorrectedGetResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -61,14 +61,14 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"3a7d3858\"", response.getHeader("ETag"));
+        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
         assertEquals("close", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
         assertEquals("text/html", response.getHeader("Content-Type"));
     }
 
-    public void testKeepAliveResponse() throws IOException {
+    public void testKeepAliveResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "HEAD /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -93,14 +93,14 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"3a7d3858\"", response.getHeader("ETag"));
+        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
         assertEquals("Keep-Alive", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
         assertEquals("text/html", response.getHeader("Content-Type"));
     }
 
-    public void testCloseConnectionResponse() throws IOException {
+    public void testCloseConnectionResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "HEAD /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -125,14 +125,14 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"3a7d3858\"", response.getHeader("ETag"));
+        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
         assertEquals("close", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
         assertEquals("text/html", response.getHeader("Content-Type"));
     }
 
-    public void testExpectHeaderResponse() throws IOException {
+    public void testExpectHeaderResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -155,7 +155,7 @@ public class HttpResponseTest extends TestCase {
         assertEquals(417, response.getCode());
     }
 
-    public void testMissingHostResponse() throws IOException {
+    public void testMissingHostResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
@@ -176,13 +176,13 @@ public class HttpResponseTest extends TestCase {
         assertEquals(400, response.getCode());
     }
 
-    public void testIfMatchResponse() throws IOException {
+    public void testIfMatchResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-Match: \"3a7d3858\"\r\n" +
+            "If-Match: \"a87ac353\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -199,7 +199,7 @@ public class HttpResponseTest extends TestCase {
         assertEquals(200, response.getCode());
     }
 
-    public void testIfMatchFailedResponse() throws IOException {
+    public void testIfMatchFailedResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -222,13 +222,13 @@ public class HttpResponseTest extends TestCase {
         assertEquals(412, response.getCode());
     }
 
-    public void testIfNonMatchGetResponse() throws IOException {
+    public void testIfNonMatchGetResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-None-Match: \"3a7d3858\"\r\n" +
+            "If-None-Match: \"a87ac353\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -245,13 +245,13 @@ public class HttpResponseTest extends TestCase {
         assertEquals(304, response.getCode());
     }
 
-    public void testIfNonMatchPutResponse() throws IOException {
+    public void testIfNonMatchPutResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "PUT /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-None-Match: \"3a7d3858\"\r\n" +
+            "If-None-Match: \"a87ac353\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -268,7 +268,7 @@ public class HttpResponseTest extends TestCase {
         assertEquals(412, response.getCode());
     }
 
-    public void testContentEncodingResponse() throws IOException {
+    public void testContentEncodingResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "PUT /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -291,7 +291,7 @@ public class HttpResponseTest extends TestCase {
         assertEquals(415, response.getCode());
     }
 
-    public void testSimpleWriteResponse() throws IOException {
+    public void testSimpleWriteResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -319,12 +319,12 @@ public class HttpResponseTest extends TestCase {
 
         String result = outputStream.toString();
         assertTrue(result.contains("HTTP/1.1 200 OK"));
-        assertTrue(result.contains("ETag: \"3a7d3858\""));
+        assertTrue(result.contains("ETag: \"a87ac353\""));
         assertTrue(result.contains("<title>A Test Page</title>"));
         assertTrue(result.contains("<h1>Hello, world!</h1>"));
     }
 
-    public void testSimpleWriteErrorResponse() throws IOException {
+    public void testSimpleWriteErrorResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
             "PUT /test/test.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +

@@ -44,7 +44,7 @@ Add dynamic content. Use Annotations. How hard could it be? :)
 
 TO DO
 
-Improve the Map that hold the dynamic content handlers
+Improve the Map that holds the dynamic content handlers
 Support inner classes in the HttpRequestHandlerFactory
 Add an actual file cache to the HttpFileManager
 
@@ -194,5 +194,13 @@ x Keep the connection open as per HTTP/1.1 Keep-alive.
 x Add support for dynamic content using the annotated request handler.
 x Write the system tests.
 x Document everything, design, architecture, shortcuts, lifts.
-
-
+x Make a server config accessible to all classes
+x Find better way to shutdown the server in tests. (shutdown executor server and catch interrupted exception and state)
+x Check for interrupted state in server rather than check flag
+x Check for end of request by checking for two CR/LF or end of body content
+x Send proper error code when unknown method in request
+x Pass through ParseExceptions
+x Make usage of date format thread safe
+x Add directory listings
+x Use StringBuilder instead of StringBuffer
+x Add default support for GET and HEAD and 405 all the other methods

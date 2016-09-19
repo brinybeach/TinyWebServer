@@ -1,5 +1,7 @@
-package com.brinybeach.tinywebserver;
+package com.brinybeach.tinywebserver.handler;
 
+import com.brinybeach.tinywebserver.HttpRequest;
+import com.brinybeach.tinywebserver.HttpResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,7 +15,7 @@ import java.lang.reflect.Method;
  *
  * author: bryantbunderson
  */
-class HttpHandlerInstance {
+public class HttpHandlerInstance {
     private static final Logger logger = LogManager.getLogger(HttpHandlerInstance.class);
 
     private Object instance;
@@ -23,8 +25,8 @@ class HttpHandlerInstance {
      * Create a new HttpHandlerInstance from the Object
      * and Method found by the HttpRequestHandlerFactory.
      *
-     * @param instance
-     * @param method
+     * @param instance the instance of the object that contains the handler method
+     * @param method the method to call
      */
     public HttpHandlerInstance(Object instance, Method method) {
         this.instance = instance;
@@ -42,7 +44,7 @@ class HttpHandlerInstance {
     /**
      * Invoke the method on the instance of the object and hand it the request to handle.
      *
-     * @param request
+     * @param request the request to pass to the handler
      * @return an appropriate HttpResponse
      */
     public HttpResponse invokeHandler(HttpRequest request) {

@@ -1,5 +1,8 @@
-package com.brinybeach.tinywebserver;
+package com.brinybeach.tinywebserver.handler;
 
+import com.brinybeach.tinywebserver.HttpRequest;
+import com.brinybeach.tinywebserver.annotation.HttpController;
+import com.brinybeach.tinywebserver.annotation.HttpRequestHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,25 +22,23 @@ import java.util.*;
 public class HttpRequestHandlerFactory {
     private static final Logger logger = LogManager.getLogger(HttpRequestHandlerFactory.class);
 
-    private static HttpRequestHandlerFactory instance;
+    private static final HttpRequestHandlerFactory instance = new HttpRequestHandlerFactory();
+
     private Map<HttpRequestHandler, HttpHandlerInstance> handlerInstances = new HashMap<HttpRequestHandler, HttpHandlerInstance>();
 
     /**
+     * Get an instance of the HttpRequestHandlerFactory using a specified root package
      * @return return the one instance of the factory
      */
     public static HttpRequestHandlerFactory getInstance() {
-        if (instance == null) {
-            instance = new HttpRequestHandlerFactory();
-        }
         return instance;
     }
 
     /**
      * Scan all classes and build a map of annotated methods.
+     * @param packageName the root package to start looking for annotated classes
      */
-    private HttpRequestHandlerFactory() {
-        String packageName = Application.class.getPackage().getName();
-
+    public void scanPackage(String packageName) {
         try {
             Class[] classes = getClasses(packageName);
             for (Class clazz : classes) {

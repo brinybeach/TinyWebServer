@@ -27,15 +27,8 @@ public class HttpResponseRules {
     public static void apply(HttpResponse response, HttpRequest request) {
         String value;
 
-        // First thing check for an invalid request
-        // before applying rules found in the RFC
-        if (!request.isValid()) {
-            setErrorCode(400, response, request);
-            return;
-        }
-
         //
-        // Now apply rules that were decided upon during the research
+        // Apply rules that were decided upon during the research
         // phase of the project. These rules are based on header information.
         //
 
@@ -61,7 +54,7 @@ public class HttpResponseRules {
 
         // Date ; Section 14.18
         // must support this and send a HTTP date in response
-        response.putHeader("Date", dateFormat.format(Calendar.getInstance().getTime()));
+        response.putHeader("Date", getTimeStamp());
 
         // *** Request Headers (only support those listed below)
         //
@@ -178,7 +171,7 @@ public class HttpResponseRules {
         response.clear();
 
         response.setCode(code);
-        response.putHeader("Date", dateFormat.format(Calendar.getInstance().getTime()));
+        response.putHeader("Date", getTimeStamp());
         response.putHeader("Server", "TinyWebServer/1.0");
 
         // Connection ; Section 14.10
@@ -197,8 +190,21 @@ public class HttpResponseRules {
         }
     }
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-    {
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    public static String getTimeStamp() {
+        SimpleDateFormat dateFormatter = threadDateFormat.get();
+        String timeStamp = dateFormatter.format(Calendar.getInstance().getTime());
+        return timeStamp;
     }
+
+    // Thread local variable containing a SimpleDateFormat
+    private static final ThreadLocal<SimpleDateFormat> threadDateFormat =
+            new ThreadLocal<SimpleDateFormat>() {
+                @Override protected SimpleDateFormat initialValue() {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+                    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
+                    return dateFormat;
+                }
+            };
+
 }

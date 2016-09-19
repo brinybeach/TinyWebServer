@@ -33,7 +33,7 @@ public class HttpRequestParser {
     private String body;
 
     private BufferedInputStream inputStream;
-    private StringBuffer buffer = new StringBuffer();
+    private StringBuilder buffer = new StringBuilder();
     private int offset;
 
     /**
@@ -49,38 +49,33 @@ public class HttpRequestParser {
      * @param inputStream the InputStream to parse
      * @return a valid or invalid HttpRequest object
      * @throws IOException if an error occurred reading from the InputStream
+     * @throws ParseException if the request is badly formed
      */
-    public HttpRequest parse(InputStream inputStream) throws IOException {
+    public HttpRequest parse(InputStream inputStream) throws IOException, ParseException {
         this.inputStream = new BufferedInputStream(inputStream);
 
-        try {
-            parseRequestLine();
-            parseHeaders();
+        parseRequestLine();
+        parseHeaders();
 
-            int offset = this.offset;
-            char c;
+        int offset = this.offset;
+        char c;
 
-            c = getChar(offset);
-            if (c != '\r') throw new ParseException("Missing CRLF after last header", offset);
-            offset++;
-            this.offset = offset;
+        c = getChar(offset);
+        if (c != '\r') throw new ParseException("Missing CRLF after last header", offset);
+        offset++;
+        this.offset = offset;
 
-            c = getChar(offset);
-            if (c != '\n') throw new ParseException("Missing CRLF after last header", offset);
-            offset++;
-            this.offset = offset;
+        c = getChar(offset);
+        if (c != '\n') throw new ParseException("Missing CRLF after last header", offset);
+        offset++;
+        this.offset = offset;
 
+        if (headers.containsKey("Content-Length")) {
             parseBody();
-
-            // Return a valid request meaning that there weren't any parse errors.
-            return new HttpRequest(method, uri, query, version, headers, body, true);
-        } catch (ParseException e) {
-            logger.warn(e);
-
-            // Go ahead and return an invalid request and let
-            // the downstream consumers decide how to handle it.
-            return new HttpRequest(method, uri, query, version, headers, body, false);
         }
+
+        // Return a valid request meaning that there weren't any parse errors.
+        return new HttpRequest(method, uri, query, version, headers, body);
     }
 
     /**
@@ -466,8 +461,8 @@ public class HttpRequestParser {
         int offset = this.offset;
         char c;
 
-        StringBuffer fieldName = new StringBuffer();
-        StringBuffer fieldValue = new StringBuffer();
+        StringBuilder fieldName = new StringBuilder();
+        StringBuilder fieldValue = new StringBuilder();
 
         c = getChar(offset);
         if (!isToken(c)) return;
@@ -661,7 +656,7 @@ public class HttpRequestParser {
 
     /**
      * Get a character at "offset" from the inputStream or the
-     * internal StringBuffer. The StringBuffer is there so that
+     * internal StringBuilder. The StringBuilder is there so that
      * the parser can backup if it needs to.
      *
      * @param offset of the char to get

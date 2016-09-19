@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class HttpRequestParserTest extends TestCase {
 
-    public void testCurlRequest() throws IOException {
+    public void testCurlRequest() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /index.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -43,7 +43,7 @@ public class HttpRequestParserTest extends TestCase {
         assertEquals("*/*", request.getHeader("Accept"));
     }
 
-    public void testSafariRequest() throws IOException {
+    public void testSafariRequest() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET / HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -91,7 +91,7 @@ public class HttpRequestParserTest extends TestCase {
         assertEquals("keep-alive", request.getHeader("Connection"));
     }
 
-    public void testChromeRequest() throws IOException {
+    public void testChromeRequest() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /index.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -143,7 +143,7 @@ public class HttpRequestParserTest extends TestCase {
         assertEquals("en-US,en;q=0.8", request.getHeader("Accept-Language"));
     }
 
-    public void testQuery() throws IOException {
+    public void testQuery() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /my/query?p1=1&p2=2 HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
@@ -188,27 +188,34 @@ public class HttpRequestParserTest extends TestCase {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
 
-        HttpRequestParser parser = new HttpRequestParser();
-        HttpRequest request = parser.parse(inputStream);
+        try {
+            HttpRequestParser parser = new HttpRequestParser();
+            HttpRequest request = parser.parse(inputStream);
 
-        assertFalse(request.isValid());
+            assertFalse("Expected ParseException to be thrown", true);
+        } catch (HttpRequestParser.ParseException e) {
+        }
     }
 
     public void testBadUriNotAbsolutePath() throws IOException {
         String data =
-            "GET index.html HTTP/1.1\r\n" +
-            "Host: localhost:8080\r\n" +
-            "User-Agent: curl/7.43.0\r\n" +
-            "Accept: */*\r\n" +
-            "\r\n";
+                "GET index.html HTTP/1.1\r\n" +
+                        "Host: localhost:8080\r\n" +
+                        "User-Agent: curl/7.43.0\r\n" +
+                        "Accept: */*\r\n" +
+                        "\r\n";
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
 
-        HttpRequestParser parser = new HttpRequestParser();
-        HttpRequest request = parser.parse(inputStream);
+        try {
+            HttpRequestParser parser = new HttpRequestParser();
+            HttpRequest request = parser.parse(inputStream);
 
-        assertFalse(request.isValid());
+            assertFalse("Expected ParseException to be thrown", true);
+        } catch (HttpRequestParser.ParseException e) {
+        }
     }
+
 
     public void testBadUriInvalidCharacters() throws IOException {
         String data =
@@ -220,10 +227,13 @@ public class HttpRequestParserTest extends TestCase {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
 
-        HttpRequestParser parser = new HttpRequestParser();
-        HttpRequest request = parser.parse(inputStream);
+        try {
+            HttpRequestParser parser = new HttpRequestParser();
+            HttpRequest request = parser.parse(inputStream);
 
-        assertFalse(request.isValid());
+            assertFalse("Expected ParseException to be thrown", true);
+        } catch (HttpRequestParser.ParseException e) {
+        }
     }
 
     public void testBadHeaderCharacters() throws IOException {
@@ -236,13 +246,16 @@ public class HttpRequestParserTest extends TestCase {
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(data.getBytes());
 
-        HttpRequestParser parser = new HttpRequestParser();
-        HttpRequest request = parser.parse(inputStream);
+        try {
+            HttpRequestParser parser = new HttpRequestParser();
+            HttpRequest request = parser.parse(inputStream);
 
-        assertFalse(request.isValid());
+            assertFalse("Expected ParseException to be thrown", true);
+        } catch (HttpRequestParser.ParseException e) {
+        }
     }
 
-    public void testDynamicRequest() throws IOException {
+    public void testDynamicRequest() throws IOException, HttpRequestParser.ParseException {
         String data =
             "GET /rest/stats HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +

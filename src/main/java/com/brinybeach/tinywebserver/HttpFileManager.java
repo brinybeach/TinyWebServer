@@ -20,58 +20,6 @@ import java.util.Properties;
 public class HttpFileManager {
     private static final Logger logger = LogManager.getLogger(HttpFileManager.class);
 
-    private static HttpFileManager instance;
-    private String rootDir;
-
-
-    public static HttpFileManager getInstance() {
-        if (instance == null) {
-            instance = new HttpFileManager();
-        }
-        return instance;
-    }
-
-    private HttpFileManager() {
-        Properties serverProperties = new Properties();
-
-        try { serverProperties.load(new FileInputStream("server.properties")); }
-        catch (Exception ignore) {}
-
-        rootDir = serverProperties.getProperty("directory", "www");
-        logger.debug("rootDir is "+rootDir);
-    }
-
-    public boolean exists(String uri) {
-        File file = new File(rootDir + uri);
-        return (file.exists() && !file.isDirectory());
-    }
-
-    public long getLength(String uri) {
-        File file = new File(rootDir + uri);
-        return file.length();
-    }
-
-    public String getContentType(String uri) {
-        String contentType = "text/plain";
-
-        try {
-            contentType = contentTypeMap.get(uri.substring(uri.indexOf('.')));
-            if (contentType == null) throw new RuntimeException();
-        } catch (Exception ignore) {}
-
-        return contentType;
-    }
-
-    public String getHash(String uri) {
-        File file = new File(rootDir + uri);
-        return Integer.toHexString(String.format("%s-%d-%d", uri, file.length(), file.lastModified()).hashCode());
-    }
-
-    public InputStream getInputStream(String uri) throws FileNotFoundException {
-        File file = new File(rootDir + uri);
-        return new FileInputStream(file);
-    }
-
     /**
      * Some common file extensions mapped to content types
      */
@@ -133,6 +81,62 @@ public class HttpFileManager {
         contentTypeMap.put(".xml", "application/xml");
         contentTypeMap.put(".x-png", "image/png");
         contentTypeMap.put(".zip", "application/x-compressed");
+    }
+
+    private static final HttpServerConfig config = HttpServerConfig.getInstance();
+    private static final HttpFileManager instance = new HttpFileManager();
+
+    private String rootDir;
+
+
+    public static HttpFileManager getInstance() {
+        return instance;
+    }
+
+    private HttpFileManager() {
+        rootDir = config.getDirectory();
+        logger.debug("rootDir is "+rootDir);
+    }
+
+    public boolean exists(String uri) {
+        File file = new File(rootDir + uri);
+        return file.exists();
+    }
+
+    public boolean isDirectory(String uri) {
+        File file = new File(rootDir + uri);
+        return (file.exists() && file.isDirectory());
+    }
+
+    public long getLength(String uri) {
+        File file = new File(rootDir + uri);
+        return file.length();
+    }
+
+    public String getContentType(String uri) {
+        String contentType = "text/plain";
+
+        try {
+            contentType = contentTypeMap.get(uri.substring(uri.indexOf('.')));
+            if (contentType == null) throw new RuntimeException();
+        } catch (Exception ignore) {}
+
+        return contentType;
+    }
+
+    public String getHash(String uri) {
+        File file = new File(rootDir + uri);
+        return Integer.toHexString(String.format("%s-%d-%d", uri, file.length(), file.lastModified()).hashCode());
+    }
+
+    public InputStream getInputStream(String uri) throws FileNotFoundException {
+        File file = new File(rootDir + uri);
+        return new FileInputStream(file);
+    }
+
+    public String getAbsolutePath(String uri) {
+        File file = new File(rootDir + uri);
+        return file.getAbsolutePath();
     }
 
 }

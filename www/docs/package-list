@@ -1,1 +1,4 @@
 com.brinybeach.tinywebserver
+com.brinybeach.tinywebserver.annotation
+com.brinybeach.tinywebserver.handler
+com.brinybeach.webserver

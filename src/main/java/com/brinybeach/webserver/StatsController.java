@@ -1,14 +1,16 @@
-package com.brinybeach.tinywebserver;
+package com.brinybeach.webserver;
 
+import com.brinybeach.tinywebserver.*;
+import com.brinybeach.tinywebserver.annotation.HttpController;
+import com.brinybeach.tinywebserver.annotation.HttpRequestHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.Properties;
+import java.util.TimeZone;
 
 /**
  * The one dynamic Web content generator in the TinyWebServer. It
@@ -20,7 +22,7 @@ import java.util.Properties;
 public class StatsController {
     private static final Logger logger = LogManager.getLogger(StatsController.class);
 
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+    private static final HttpServerConfig config = HttpServerConfig.getInstance();
 
     private int poolsize;
     private int timeout;
@@ -29,15 +31,8 @@ public class StatsController {
      * Load the server properties from the file rather than query the HttpServerRunner.
      */
     public StatsController() {
-        Properties serverProperties = new Properties();
-        try {
-            // Load the server properties file. If the load fails then
-            // the getPropertiy() calls will just use the default values.
-            serverProperties.load(new FileInputStream("server.properties"));
-        } catch (Exception ignore) {}
-
-        poolsize = Integer.parseInt(serverProperties.getProperty("poolsize", "20"));
-        timeout = Integer.parseInt(serverProperties.getProperty("timeout", "5000"));
+        this.poolsize = config.getPoolsize();
+        this.timeout = config.getTimeout();
     }
 
     /**
@@ -49,6 +44,9 @@ public class StatsController {
      */
     @HttpRequestHandler(method = "GET", uri = "/rest/stats")
     public HttpResponse handleStatsRequest(HttpRequest request) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
         String servertime = dateFormat.format(Calendar.getInstance().getTime());
 
         String contentString = String.format("{ \"poolsize\": \"%s\", \"timeout\": \"%s\", \"servertime\": \"%s\"}", poolsize, timeout, servertime);

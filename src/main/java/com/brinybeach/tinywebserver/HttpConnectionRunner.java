@@ -1,8 +1,11 @@
 package com.brinybeach.tinywebserver;
 
+import com.brinybeach.tinywebserver.handler.HttpHandlerInstance;
+import com.brinybeach.tinywebserver.handler.HttpRequestHandlerFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -39,12 +42,9 @@ public class HttpConnectionRunner implements Runnable {
         SocketAddress clientAddress = clientSocket.getRemoteSocketAddress();
         logger.debug(String.format("Client connected %s", clientAddress.toString()));
 
-        InputStream inputStream = null;
-        OutputStream outputStream = null;
-
         try {
-            inputStream = clientSocket.getInputStream();
-            outputStream = clientSocket.getOutputStream();
+            InputStream inputStream = clientSocket.getInputStream();
+            OutputStream outputStream = clientSocket.getOutputStream();
 
             // Just keep parsing and handling requests coming in on
             // the inputStream. If the client stops sending requests
@@ -53,48 +53,65 @@ public class HttpConnectionRunner implements Runnable {
             // the loop and exit the run function and the Thread
             // will be recycled.
             while (!clientSocket.isClosed()) {
+
+                // Bail out if the thread was interrupted
+                // because the executor service was cancelled.
+                if (Thread.interrupted()) {
+                    logger.debug("Connection thread was interrupted");
+                    break;
+                }
+
                 HttpRequestParser parser = new HttpRequestParser();
-                HttpRequest request = parser.parse(inputStream);
 
-                String method = request.getMethod();
-                String uri = request.getUri();
-                String query = request.getQuery();
-                String version = request.getVersion();
+                HttpRequest request;
+                HttpResponse response;
 
-                if (query == null) query="";
-                logger.info(String.format("%s %s%s %s", method, uri, query, version));
+                try {
+                    request = parser.parse(inputStream);
 
-                // Look for a dynamic handler for the content
-                HttpRequestHandlerFactory handlerFactory = HttpRequestHandlerFactory.getInstance();
-                HttpHandlerInstance handlerInstance = handlerFactory.findHandlerMethod(request);
+                    String method = request.getMethod();
+                    String uri = request.getUri();
+                    String query = request.getQuery();
+                    String version = request.getVersion();
 
-                HttpResponse response = null;
+                    if (query == null) query="";
+                    logger.info(String.format("%s %s%s %s", method, uri, query, version));
 
-                // Use the dynamic handler for the content if it exists else
-                // the default behavior is to return all requested files.
-                if (handlerInstance != null) {
-                    response = handlerInstance.invokeHandler(request);
-                } else {
-                    // Default behavior is to return all requested files if they exist.
-                    HttpFileManager fileManager = HttpFileManager.getInstance();
-
-                    String requestUri = request.getUri();
-                    if ("/".equals(requestUri)) requestUri = "/index.html";
-
-                    if (fileManager.exists(requestUri)) {
-                        response = new HttpResponse(200, requestUri);
-                    } else {
-                        response = new HttpResponse(404);
+                    // Look for a dynamic handler for the content
+                    HttpHandlerInstance handlerInstance = null;
+                    HttpRequestHandlerFactory handlerFactory = HttpRequestHandlerFactory.getInstance();
+                    if (handlerFactory != null) {
+                        handlerInstance = handlerFactory.findHandlerMethod(request);
                     }
+
+                    // Use the dynamic handler for the content if it exists else
+                    // the default behavior is to return all requested files.
+                    if (handlerInstance != null) {
+                        response = handlerInstance.invokeHandler(request);
+                    } else {
+                        response = defaultHandler(request);
+                    }
+
+                } catch (HttpRequestParser.ParseException e) {
+                    request = new HttpRequest(null, null, null, null, null, null);
+                    response = new HttpResponse(400);
+                }
+
+                if (response == null) {
+                    request = new HttpRequest(null, null, null, null, null, null);
+                    response = new HttpResponse(500);
                 }
 
                 HttpResponseRules.apply(response, request);
                 response.write(outputStream);
 
                 if ("close".equals(response.getHeader("Connection"))) {
-                    outputStream.close();
+                    clientSocket.close();
                 }
             }
+
+            clientSocket = null;
+
         } catch (SocketTimeoutException e) {
             logger.debug(e);
         } catch (SocketException e) {
@@ -102,9 +119,43 @@ public class HttpConnectionRunner implements Runnable {
         } catch (IOException e) {
             logger.debug(e);
         } finally {
-            try { clientSocket.close(); } catch (Exception ignore) {};
+            if (clientSocket != null) {
+                logger.debug("Client socket wasn't closed properly!");
+                try { clientSocket.close(); } catch (Exception ignore) {}
+            };
         }
 
         logger.debug(String.format("Client disconnected %s", clientAddress.toString()));
     }
+
+    private HttpResponse defaultHandler(HttpRequest request) {
+        HttpResponse response;
+
+        // Default behavior is to return all requested files if they exist.
+        HttpFileManager fileManager = HttpFileManager.getInstance();
+
+        // Only support GET and HEAD by default
+        if ("GET".equals(request.getMethod()) || "HEAD".equals(request.getMethod())) {
+            String requestUri = request.getUri();
+            if ("/".equals(requestUri)) requestUri = "/index.html";
+
+            try {
+                response = new HttpResponse(200, requestUri);
+                if ("HEAD".equals(request.getMethod())) {
+                    // Remove body content if HEAD
+                    response.setContentInputStream(null);
+                }
+            } catch (FileNotFoundException e) {
+                response = new HttpResponse(404);
+            }
+        }
+        else {
+            // Don't support any methods other than GET and HEAD by default. A
+            // RequestHandler will have to be created to handle POST and DELETE.
+            response = new HttpResponse(405);
+        }
+
+        return response;
+    }
+
 }

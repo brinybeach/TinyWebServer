@@ -22,8 +22,6 @@ public class HttpRequest {
     private Map<String, String> headers = new HashMap<String, String>();
     private String body;
 
-    private boolean isValid;
-
     private HttpRequest() {
     }
 
@@ -38,35 +36,12 @@ public class HttpRequest {
      * @param body 4.3 Message Body
      */
     public HttpRequest(String method, String uri, String query, String version, Map<String, String> headers, String body) {
-        this(method, uri, query, version, headers, body, true);
-    }
-
-    /**
-     * Create the HttpRequest from individual parsed attributes.
-     *
-     * @param method 5.1.1 Method
-     * @param uri 5.1.2 Request-URI (path part)
-     * @param query 5.1.2 Request-URI (query part)
-     * @param version 3.1 HTTP Version
-     * @param headers 5.3 Request Header Fields
-     * @param body 4.3 Message Body
-     * @param isValid is false if an error occurred while parsing the request
-     */
-    public HttpRequest(String method, String uri, String query, String version, Map<String, String> headers, String body, boolean isValid) {
         this.method = method;
         this.uri = uri;
         this.query = query;
         this.version = version;
-        this.headers.putAll(headers);
+        if (headers != null) this.headers.putAll(headers);
         this.body = body;
-        this.isValid = isValid;
-    }
-
-    /**
-     * @return true if the HttpRequest was parsed correctly.
-     */
-    public boolean isValid() {
-        return isValid;
     }
 
     /**

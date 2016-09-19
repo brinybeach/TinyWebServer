@@ -49,6 +49,6 @@ public class HttpFileManagerTest extends TestCase {
 
     public void testFileManagerGetHash() {
         String hash = fileManager.getHash(uri);
-        assertEquals("3a7d3858", hash);
+        assertEquals("a87ac353", hash);
     }
 }
