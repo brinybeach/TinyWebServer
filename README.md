@@ -37,6 +37,10 @@ Map. The HttpConnectionRunner asks the HttpRequestHandlerFactory for a handler m
 then invokes the handler on the HttpRequest which returns a HttpResponse object to which rules are applied
 before it is written to the OutputStream.
 
+There are several settings that can be modified such as the thread pool size, the listening socket port and 
+timeout, and the root directory. The settings are stored in a file named server.properties and loaded using 
+the HttpServerConfig class.
+
 The JavaDoc for the TinyWebServer can be found at &lt;project dir&gt;/docs/index.html.
 
 ### How do I get set up? ###
