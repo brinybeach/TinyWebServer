@@ -2,6 +2,7 @@ package com.brinybeach.tinywebserver;
 
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,7 +13,9 @@ import java.io.InputStream;
  */
 public class HttpFileManagerTest extends TestCase {
     private static final String uri = "/test/test.html";
+
     private static final HttpFileManager fileManager = HttpFileManager.getInstance();
+    private static final HttpServerConfig config = HttpServerConfig.getInstance();
 
     public void testFileManagerExistsUri() {
         assertTrue(fileManager.exists(uri));
@@ -48,7 +51,10 @@ public class HttpFileManagerTest extends TestCase {
     }
 
     public void testFileManagerGetHash() {
-        String hash = fileManager.getHash(uri);
-        assertEquals("a87ac353", hash);
+        File file = new File(config.getDirectory() + uri);
+        String actualHash = Integer.toHexString(String.format("%s-%d-%d", uri, file.length(), file.lastModified()).hashCode());
+
+        String expectedHash = fileManager.getHash(uri);
+        assertEquals(actualHash, expectedHash);
     }
 }

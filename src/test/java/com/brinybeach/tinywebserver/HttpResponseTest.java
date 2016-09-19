@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -14,6 +15,14 @@ import java.io.IOException;
 public class HttpResponseTest extends TestCase {
 
     private static final HttpFileManager fileManager = HttpFileManager.getInstance();
+    private static final HttpServerConfig config = HttpServerConfig.getInstance();
+
+    private static String actualHash = null;
+    {
+        String uri = "/test/test.html";
+        File file = new File(config.getDirectory() + uri);
+        actualHash = Integer.toHexString(String.format("%s-%d-%d", uri, file.length(), file.lastModified()).hashCode());
+    }
 
     public void testSimpleGetResponse() throws IOException, HttpRequestParser.ParseException {
         String data =
@@ -61,7 +70,7 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
+        assertEquals("\""+actualHash+"\"", response.getHeader("ETag"));
         assertEquals("close", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
@@ -93,7 +102,7 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
+        assertEquals("\""+actualHash+"\"", response.getHeader("ETag"));
         assertEquals("Keep-Alive", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
@@ -125,7 +134,7 @@ public class HttpResponseTest extends TestCase {
         HttpResponseRules.apply(response, request);
 
         assertEquals("TinyWebServer/1.0", response.getHeader("Server"));
-        assertEquals("\"a87ac353\"", response.getHeader("ETag"));
+        assertEquals("\""+actualHash+"\"", response.getHeader("ETag"));
         assertEquals("close", response.getHeader("Connection"));
         assertEquals("183", response.getHeader("Content-Length"));
         assertNotNull(response.getHeader("Date"));
@@ -182,7 +191,7 @@ public class HttpResponseTest extends TestCase {
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-Match: \"a87ac353\"\r\n" +
+            "If-Match: \""+actualHash+"\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -205,7 +214,7 @@ public class HttpResponseTest extends TestCase {
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-Match: \"14691e97\"\r\n" +
+            "If-Match: \"12345678\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -228,7 +237,7 @@ public class HttpResponseTest extends TestCase {
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-None-Match: \"a87ac353\"\r\n" +
+            "If-None-Match: \""+actualHash+"\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -251,7 +260,7 @@ public class HttpResponseTest extends TestCase {
             "Host: localhost:8080\r\n" +
             "User-Agent: curl/7.43.0\r\n" +
             "Accept: */*\r\n" +
-            "If-None-Match: \"a87ac353\"\r\n" +
+            "If-None-Match: \""+actualHash+"\"\r\n" +
             "\r\n";
 
         ByteArrayInputStream requestStream = new ByteArrayInputStream(data.getBytes());
@@ -319,7 +328,7 @@ public class HttpResponseTest extends TestCase {
 
         String result = outputStream.toString();
         assertTrue(result.contains("HTTP/1.1 200 OK"));
-        assertTrue(result.contains("ETag: \"a87ac353\""));
+        assertTrue(result.contains("ETag: \""+actualHash+"\""));
         assertTrue(result.contains("<title>A Test Page</title>"));
         assertTrue(result.contains("<h1>Hello, world!</h1>"));
     }
